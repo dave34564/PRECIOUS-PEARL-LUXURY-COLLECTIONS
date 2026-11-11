@@ -1,0 +1,278 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Precious Pearl Luxury Collections</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#fffaf5;color:#30251f}
+header{background:#30201e;color:white;text-align:center;padding:25px 12px}
+header h1{font-family:Georgia,serif;letter-spacing:2px;margin:0;font-size:26px}
+header p{color:#e6c9a4;letter-spacing:3px;font-size:11px}
+nav{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;padding:14px;background:#f0e4d8}
+button{border:0;border-radius:5px;background:#a77949;color:white;padding:12px 16px;font-weight:bold;cursor:pointer}
+button:hover{opacity:.85}
+.hero{text-align:center;padding:55px 18px;background:linear-gradient(130deg,#ead5bf,#fff8ef)}
+.hero h2{font:34px Georgia,serif;color:#684532}
+.hero p{line-height:1.7}
+section{max-width:1100px;margin:auto;padding:25px 16px}
+h2,h3{font-family:Georgia,serif;color:#684532}
+.products{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
+.product{background:white;border:1px solid #eadfd3;border-radius:9px;overflow:hidden}
+.product img{width:100%;height:260px;object-fit:cover;background:#eee}
+.product-info{padding:14px}
+.product-info h3{margin:5px 0}
+.price{font-size:19px;color:#a77949;font-weight:bold}
+.order{display:block;text-align:center;text-decoration:none;background:#16834a;color:white;padding:12px;border-radius:5px;margin-top:12px;font-weight:bold}
+#admin{display:none;background:#f4ebe2;border-radius:9px;padding:20px}
+input,textarea,select{width:100%;padding:12px;margin:7px 0 15px;border:1px solid #d8c8b8;border-radius:5px;font-size:15px;background:white}
+label{font-weight:bold;font-size:14px}
+.admin-product{background:white;padding:12px;margin:12px 0;border-radius:7px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.admin-product img{width:65px;height:75px;object-fit:cover}
+.admin-product .details{flex:1;min-width:120px}
+.secondary{background:#66574e}
+.danger{background:#a83232}
+.note{font-size:12px;line-height:1.6;color:#76665c}
+footer{text-align:center;background:#30201e;color:white;padding:25px;margin-top:35px}
+footer p{color:#e6c9a4}
+</style>
+</head>
+<body>
+
+<header>
+<h1>PRECIOUS PEARL</h1>
+<p>LUXURY COLLECTIONS</p>
+</header>
+
+<nav>
+<button onclick="showStore()">Home / Shop</button>
+<button onclick="showAdmin()">Owner Dashboard</button>
+</nav>
+
+<div class="hero">
+<h2>Elegance in Every Stitch</h2>
+<p>Discover beautiful Ankara, ready-to-wear outfits and unique women's fashion.<br>
+Style, beauty and confidence — all in one place.</p>
+<button onclick="document.getElementById('shop').scrollIntoView()">Explore Collection</button>
+</div>
+
+<main id="store">
+<section id="shop">
+<h2>Our Fashion Collection</h2>
+<p>Explore our beautiful women's outfits and latest designs.</p>
+<div class="products" id="productList">
+<p>Our new collections will appear here.</p>
+</div>
+</section>
+</main>
+
+<section id="admin">
+<h2>Owner Dashboard</h2>
+<p>Welcome! Add and manage your fashion products here.</p>
+
+<h3 id="formTitle">Add a New Product</h3>
+<form id="productForm">
+<label>Product Name</label>
+<input id="name" required placeholder="e.g. Elegant Ankara Gown">
+
+<label>Category</label>
+<select id="category">
+<option>Ankara</option>
+<option>Ready-to-Wear</option>
+<option>Gowns</option>
+<option>Two-Piece</option>
+<option>Casual Wear</option>
+<option>Custom Tailoring</option>
+<option>Other</option>
+</select>
+
+<label>Price (₦)</label>
+<input id="price" type="number" min="0" required placeholder="Enter product price">
+
+<label>Product Description</label>
+<textarea id="description" placeholder="Describe the outfit, size, colour and other details"></textarea>
+
+<label>Upload Product Picture</label>
+<input id="picture" type="file" accept="image/*">
+
+<p class="note">Choose a clear picture from your phone. For this prototype, product pictures are saved in this browser only.</p>
+
+<button type="submit">Save Product</button>
+<button type="button" class="secondary" onclick="resetForm()">Clear Form</button>
+</form>
+
+<h3>Manage Your Products</h3>
+<div id="adminProducts"></div>
+
+<p class="note">Prototype notice: this dashboard is not protected by a secure owner login yet. Products are stored only on this browser and are not shared online. We will connect the online database and secure owner access before the real shop launches.</p>
+</section>
+
+<footer>
+<h3 style="color:white">PRECIOUS PEARL LUXURY COLLECTIONS</h3>
+<p>Beauty • Elegance • Confidence</p>
+<p>For orders and enquiries: 07062620407</p>
+<p>© 2026 Precious Pearl Luxury Collections</p>
+</footer>
+
+<script>
+let products=[];
+try{
+products=JSON.parse(localStorage.getItem("pearlProducts")||"[]");
+}catch(e){products=[];}
+
+let editing=-1;
+let imageData="";
+
+function save(){
+try{
+localStorage.setItem("pearlProducts",JSON.stringify(products));
+render();
+}catch(e){
+alert("Storage is full. Please use a smaller product picture.");
+}
+}
+
+function escapeHTML(value){
+return String(value).replace(/[&<>"']/g,c=>({
+"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+}[c]));
+}
+
+function render(){
+const list=document.getElementById("productList");
+const admin=document.getElementById("adminProducts");
+
+list.innerHTML="";
+admin.innerHTML="";
+
+if(products.length===0){
+list.innerHTML="<p>No products added yet. Our new collections are coming soon!</p>";
+admin.innerHTML="<p>You have not added any products yet.</p>";
+return;
+}
+
+products.forEach((p,i)=>{
+const img=p.image||"https://placehold.co/400x300?text=Fashion+Product";
+const message="Hello Precious Pearl Luxury Collections, I want to order "+p.name+". Price: ₦"+Number(p.price).toLocaleString();
+const whatsapp="https://wa.me/2347062620407?text="+encodeURIComponent(message);
+
+list.innerHTML+=`
+<article class="product">
+<img src="${img}" alt="${escapeHTML(p.name)}">
+<div class="product-info">
+<h3>${escapeHTML(p.name)}</h3>
+<p>${escapeHTML(p.category)}</p>
+<p>${escapeHTML(p.description||"Beautiful women's fashion.")}</p>
+<p class="price">₦${Number(p.price).toLocaleString()}</p>
+<a class="order" href="${whatsapp}" target="_blank" rel="noopener">Order on WhatsApp</a>
+</div>
+</article>`;
+
+admin.innerHTML+=`
+<div class="admin-product">
+<img src="${img}" alt="">
+<div class="details">
+<strong>${escapeHTML(p.name)}</strong><br>
+₦${Number(p.price).toLocaleString()}<br>
+<small>${escapeHTML(p.category)}</small>
+</div>
+<button onclick="editProduct(${i})">Edit</button>
+<button class="danger" onclick="deleteProduct(${i})">Delete</button>
+</div>`;
+});
+}
+
+function showStore(){
+document.getElementById("admin").style.display="none";
+document.getElementById("store").style.display="block";
+window.scrollTo(0,0);
+}
+
+function showAdmin(){
+document.getElementById("admin").style.display="block";
+document.getElementById("store").style.display="block";
+document.getElementById("admin").scrollIntoView();
+}
+
+document.getElementById("picture").addEventListener("change",function(e){
+const file=e.target.files[0];
+if(!file)return;
+
+if(file.size>5*1024*1024){
+alert("Please choose a picture smaller than 5MB.");
+this.value="";
+return;
+}
+
+const reader=new FileReader();
+reader.onload=function(){
+const img=new Image();
+img.onload=function(){
+const canvas=document.createElement("canvas");
+const scale=Math.min(1,900/img.width,900/img.height);
+canvas.width=img.width*scale;
+canvas.height=img.height*scale;
+const ctx=canvas.getContext("2d");
+ctx.drawImage(img,0,0,canvas.width,canvas.height);
+imageData=canvas.toDataURL("image/jpeg",0.75);
+};
+img.src=reader.result;
+};
+reader.readAsDataURL(file);
+});
+
+document.getElementById("productForm").addEventListener("submit",function(e){
+e.preventDefault();
+
+const old=editing>=0?products[editing]:null;
+const product={
+name:document.getElementById("name").value.trim(),
+category:document.getElementById("category").value,
+price:document.getElementById("price").value,
+description:document.getElementById("description").value.trim(),
+image:imageData||(old?old.image:"")
+};
+
+if(editing>=0){
+products[editing]=product;
+}else{
+products.push(product);
+}
+
+save();
+resetForm();
+alert("Product saved in this browser!");
+});
+
+function editProduct(i){
+const p=products[i];
+editing=i;
+document.getElementById("name").value=p.name;
+document.getElementById("category").value=p.category;
+document.getElementById("price").value=p.price;
+document.getElementById("description").value=p.description;
+imageData="";
+document.getElementById("formTitle").textContent="Edit Product";
+document.getElementById("admin").scrollIntoView();
+}
+
+function deleteProduct(i){
+if(confirm("Are you sure you want to delete this product?")){
+products.splice(i,1);
+save();
+}
+}
+
+function resetForm(){
+editing=-1;
+imageData="";
+document.getElementById("productForm").reset();
+document.getElementById("formTitle").textContent="Add a New Product";
+}
+
+render();
+</script>
+</body>
+</html>
